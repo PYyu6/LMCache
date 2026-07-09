@@ -6,10 +6,12 @@ Uses the real ``azure-storage-blob`` client against the Azurite Blob emulator
 127.0.0.1:10000.
 
 Start Azurite first:
-    azurite-blob --silent --location /tmp/azurite_data --blobPort 10000 --blobHost 127.0.0.1
+    azurite-blob --silent --location /tmp/azurite_data \
+        --blobPort 10000 --blobHost 127.0.0.1
 
 Run:
-    PYTHONPATH=. python -m pytest tests/v1/storage_backend/test_azure_connector_azurite.py -q
+    PYTHONPATH=. python -m pytest \
+        tests/v1/storage_backend/test_azure_connector_azurite.py -q
 """
 
 # Standard
@@ -21,7 +23,6 @@ import time
 # Third Party
 import pytest
 import torch
-from azure.storage.blob import BlobServiceClient as SyncBlobServiceClient
 
 # First Party
 from lmcache.utils import CacheEngineKey
@@ -29,6 +30,9 @@ from lmcache.v1.config import LMCacheEngineConfig
 from lmcache.v1.metadata import LMCacheMetadata
 from lmcache.v1.storage_backend.connector.azure_connector import AzureConnector
 from lmcache.v1.storage_backend.local_cpu_backend import LocalCPUBackend
+
+# Skip the whole module if azure-storage-blob is not installed
+SyncBlobServiceClient = pytest.importorskip("azure.storage.blob").BlobServiceClient
 
 AZURITE_CONN = (
     "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
