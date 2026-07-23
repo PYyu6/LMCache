@@ -50,6 +50,9 @@ jobs:
     services:
       azurite:
         image: mcr.microsoft.com/azure-storage/azurite:latest
+        env:
+          azurite.disableTelemetry: "true"
+          azurite.skipApiVersionCheck: "true"
         ports:
           - "10000:10000"
 
@@ -88,6 +91,7 @@ jobs:
               echo "Azurite is up"
               exit 0
             fi
+            echo "Waiting for Azurite ($i/30)"
             sleep 1
           done
           echo "Azurite did not become reachable on 127.0.0.1:10000" >&2
