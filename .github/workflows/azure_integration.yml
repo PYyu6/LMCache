@@ -45,17 +45,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # Azurite blob emulator reachable at 127.0.0.1:10000, matching the
-    # BlobEndpoint the test connects to.
-    services:
-      azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:latest
-        env:
-          azurite.disableTelemetry: "true"
-          azurite.skipApiVersionCheck: "true"
-        ports:
-          - "10000:10000"
-
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -84,6 +73,17 @@ jobs:
           python -m pip install -r requirements/test.txt
           python -m pip install azure-storage-blob
 
+      - name: Start Azurite
+        run: |
+          docker run --detach --rm \
+            --name lmcache-azurite \
+            --publish 10000:10000 \
+            mcr.microsoft.com/azure-storage/azurite:latest \
+            azurite-blob \
+            --blobHost 0.0.0.0 \
+            --skipApiVersionCheck \
+            --disableTelemetry
+
       - name: Wait for Azurite
         run: |
           for i in $(seq 1 30); do
@@ -101,3 +101,7 @@ jobs:
         run: |
           pytest -v --tb=short \
             tests/v1/storage_backend/test_azure_connector_azurite.py
+
+      - name: Stop Azurite
+        if: always()
+        run: docker rm --force lmcache-azurite
